@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -33,10 +32,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { getBooks } from '@/http/api';
-import { Book } from '@/types';
 import { useQuery } from '@tanstack/react-query';
-import { CirclePlus, MoreHorizontal } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import {  MoreHorizontal } from 'lucide-react';
 
 const fakeCustomers = [
   { _id: "c1", name: "Ayesha Khan", dob: "1995-05-21", gender: "female", address: "Lahore", createdAt: "2024-06-01" },

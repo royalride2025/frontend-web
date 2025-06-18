@@ -25,10 +25,13 @@ import {
     Users,
 } from 'lucide-react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import logo from '../assets/blackLogo.svg'; 
 
 const DashboardLayout = () => {
     const navigate = useNavigate();
-    const { token, setToken } = useTokenStore((state) => state);
+    const { 
+        // token, 
+        setToken } = useTokenStore((state) => state);
 
     // if (token === '') {
     //     return <Navigate to={'/auth/login'} replace />;
@@ -46,8 +49,11 @@ const DashboardLayout = () => {
                 <div className="flex h-full max-h-screen flex-col gap-2">
                     <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                         <Link to="/" className="flex items-center gap-2 font-semibold">
-                            <Package2 className="h-6 w-6" />
-                            <span className="">Royal Ride</span>
+                            <img 
+                                src={logo} 
+                                alt="Royal Ride"
+                                className="h-8 w-8 md:h-10 md:w-10 lg:h-12 lg:w-12"
+                                />
                         </Link>
                         <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
                             <Bell className="h-4 w-4" />

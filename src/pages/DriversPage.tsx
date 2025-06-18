@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -33,7 +32,6 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { getBooks } from '@/http/api';
-import { Book } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { CirclePlus, MoreHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
