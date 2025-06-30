@@ -34,10 +34,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { getDrivers, updateDriverProfileStatus, updateUserStatus } from "@/http/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CirclePlus, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { LineWave } from "react-loader-spinner";
-import { Link } from "react-router-dom";
 import {
   Drawer,
   DrawerClose,
@@ -61,112 +60,111 @@ import {
 } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import carImg1 from '../assets/carImg1.webp'
-import carImg2 from '../assets/carImg2.webp'
 import userImg from '../assets/user.jpg'
 
 
-const DriversList = [
-  {
-    _id: "1",
-    name: "Azam Khan",
-    license_no: "LIC-9283",
-    vehicle_assigned: "Toyota Prius",
-    profile_img:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
-    status: "active",
-    createdAt: "2024-06-01",
-  },
-  {
-    _id: "2",
-    name: "Sana Malik",
-    license_no: "LIC-1123",
-    vehicle_assigned: "Honda Civic",
-    profile_img:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
-    status: "inactive",
-    createdAt: "2024-06-05",
-  },
-  {
-    _id: "3",
-    name: "Ahmed Raza",
-    license_no: "LIC-3344",
-    vehicle_assigned: "Suzuki Alto",
-    profile_img:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
-    status: "active",
-    createdAt: "2024-06-03",
-  },
-  {
-    _id: "4",
-    name: "Zainab Shah",
-    license_no: "LIC-5566",
-    vehicle_assigned: "Kia Sportage",
-    profile_img:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
-    status: "inactive",
-    createdAt: "2024-06-04",
-  },
-  {
-    _id: "5",
-    name: "Bilal Arshad",
-    license_no: "LIC-7788",
-    vehicle_assigned: "Hyundai Tucson",
-    profile_img:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
-    status: "active",
-    createdAt: "2024-06-02",
-  },
-  {
-    _id: "6",
-    name: "Maham Yousaf",
-    license_no: "LIC-9911",
-    vehicle_assigned: "Suzuki Cultus",
-    profile_img:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
-    status: "inactive",
-    createdAt: "2024-06-06",
-  },
-  {
-    _id: "7",
-    name: "Usman Tariq",
-    license_no: "LIC-2233",
-    vehicle_assigned: "Toyota Corolla",
-    profile_img:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
-    status: "active",
-    createdAt: "2024-06-01",
-  },
-  {
-    _id: "8",
-    name: "Hina Aslam",
-    license_no: "LIC-4455",
-    vehicle_assigned: "MG HS",
-    profile_img:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
-    status: "inactive",
-    createdAt: "2024-06-07",
-  },
-  {
-    _id: "9",
-    name: "Talha Sheikh",
-    license_no: "LIC-6677",
-    vehicle_assigned: "Daihatsu Mira",
-    profile_img:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
-    status: "active",
-    createdAt: "2024-06-08",
-  },
-  {
-    _id: "10",
-    name: "Nimra Iqbal",
-    license_no: "LIC-8899",
-    vehicle_assigned: "Suzuki WagonR",
-    profile_img:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
-    status: "inactive",
-    createdAt: "2024-06-09",
-  },
-];
+// const DriversList = [
+//   {
+//     _id: "1",
+//     name: "Azam Khan",
+//     license_no: "LIC-9283",
+//     vehicle_assigned: "Toyota Prius",
+//     profile_img:
+//       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
+//     status: "active",
+//     createdAt: "2024-06-01",
+//   },
+//   {
+//     _id: "2",
+//     name: "Sana Malik",
+//     license_no: "LIC-1123",
+//     vehicle_assigned: "Honda Civic",
+//     profile_img:
+//       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
+//     status: "inactive",
+//     createdAt: "2024-06-05",
+//   },
+//   {
+//     _id: "3",
+//     name: "Ahmed Raza",
+//     license_no: "LIC-3344",
+//     vehicle_assigned: "Suzuki Alto",
+//     profile_img:
+//       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
+//     status: "active",
+//     createdAt: "2024-06-03",
+//   },
+//   {
+//     _id: "4",
+//     name: "Zainab Shah",
+//     license_no: "LIC-5566",
+//     vehicle_assigned: "Kia Sportage",
+//     profile_img:
+//       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
+//     status: "inactive",
+//     createdAt: "2024-06-04",
+//   },
+//   {
+//     _id: "5",
+//     name: "Bilal Arshad",
+//     license_no: "LIC-7788",
+//     vehicle_assigned: "Hyundai Tucson",
+//     profile_img:
+//       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
+//     status: "active",
+//     createdAt: "2024-06-02",
+//   },
+//   {
+//     _id: "6",
+//     name: "Maham Yousaf",
+//     license_no: "LIC-9911",
+//     vehicle_assigned: "Suzuki Cultus",
+//     profile_img:
+//       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
+//     status: "inactive",
+//     createdAt: "2024-06-06",
+//   },
+//   {
+//     _id: "7",
+//     name: "Usman Tariq",
+//     license_no: "LIC-2233",
+//     vehicle_assigned: "Toyota Corolla",
+//     profile_img:
+//       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
+//     status: "active",
+//     createdAt: "2024-06-01",
+//   },
+//   {
+//     _id: "8",
+//     name: "Hina Aslam",
+//     license_no: "LIC-4455",
+//     vehicle_assigned: "MG HS",
+//     profile_img:
+//       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
+//     status: "inactive",
+//     createdAt: "2024-06-07",
+//   },
+//   {
+//     _id: "9",
+//     name: "Talha Sheikh",
+//     license_no: "LIC-6677",
+//     vehicle_assigned: "Daihatsu Mira",
+//     profile_img:
+//       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
+//     status: "active",
+//     createdAt: "2024-06-08",
+//   },
+//   {
+//     _id: "10",
+//     name: "Nimra Iqbal",
+//     license_no: "LIC-8899",
+//     vehicle_assigned: "Suzuki WagonR",
+//     profile_img:
+//       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZlAfzEdNxQG6-ZImpr7bPAeD-nWoXgXs8qQ&s",
+//     status: "inactive",
+//     createdAt: "2024-06-09",
+//   },
+// ];
 
 const DriversPage = () => {
   const { toast } = useToast();
@@ -239,9 +237,7 @@ const DriversPage = () => {
   license_no,
   license_expiry,
   dob,
-  profile_status,
-  terms_accepted,
-  language_preference,
+  
   is_car_owner,
 } = selectedDriver || {};
 
@@ -722,7 +718,7 @@ const DriversPage = () => {
                       <Separator className="my-6" />
                       <p className="text-sm font-medium text-gray-600 mb-2">Vehicle Pictures</p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {vehicle_details.vehicle_pictures.map((pic, idx) => (
+                        {vehicle_details.vehicle_pictures.map((pic: string, idx: number) => (
                           <img
                             key={idx}
                             // src={pic || carImg1}
@@ -785,7 +781,7 @@ const DriversPage = () => {
 export default DriversPage;
 
 
-const InfoBox = ({ icon, label, value, colSpan = 1, isMono = false, bg = false }) => (
+const InfoBox = ({ icon, label, value, colSpan = 1, isMono = false, bg = false }: { icon: React.ReactElement; label: string; value: string; colSpan?: number; isMono?: boolean; bg?: boolean }) => (
   <div className={`flex items-start gap-3 p-3 rounded-lg bg-white border border-gray-100 ${colSpan === 2 ? 'md:col-span-2' : ''}`}>
     {React.cloneElement(icon, { className: "h-4 w-4 text-gray-500 mt-1" })}
     <div>
