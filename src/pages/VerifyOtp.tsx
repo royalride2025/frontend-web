@@ -9,32 +9,34 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { login } from "@/http/api";
+import { login, verifyOtp } from "@/http/api";
 import useTokenStore from "@/store";
 import { useMutation } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
 import { useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
-const LoginPage = () => {
+const VerifyOtpPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const setToken = useTokenStore((state) => state.setToken);
 
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
+  const email = location.state?.email;
+  const otpRef = useRef<HTMLInputElement>(null);
+  const newPasswordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
 
   const mutation = useMutation({
-    mutationFn: login,
+    mutationFn: verifyOtp,
     onSuccess: (response) => {
-      console.log("Login successful", response);
       setToken(response.data.token);
-      navigate("/dashboard");
+      navigate("/auth/login");
       toast({
         className:
           "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
-        title: "Login successful",
+        title: "Password reset successful",
         //   description: "Welcome back!",
       });
     },
@@ -42,43 +44,51 @@ const LoginPage = () => {
       const msg = error?.response?.data?.message || "Something went wrong";
       toast({
         variant: "destructive",
-        title: "Login failed",
-        description: msg || "Invalid email or password",
+        title: "Password reset failed",
+        description: msg || "Invalid OTP or password does not match",
       });
     },
   });
 
   const handleLoginSubmit = () => {
-    const email = emailRef.current?.value;
-    const password = passwordRef.current?.value;
+    const otp = otpRef.current?.value;
+    const newPassword = newPasswordRef.current?.value;
+    const confirmPassword = confirmPasswordRef.current?.value;
 
     // Basic validation
-    if (!email || !password) {
+    if (!otp || !newPassword || !confirmPassword) {
       return toast({
         variant: "destructive",
-        title: "Login failed",
-        description: "Email and password are required",
+        // title: "",
+        description: "Otp and new password are required",
       });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (newPassword !== confirmPassword) {
       return toast({
         variant: "destructive",
-        title: "Login failed",
-        description: "Invalid email format",
+        description: "New password and confirm password do not match",
       });
     }
 
-    mutation.mutate({ identifier: email, password, platform: "admin_panel" });
+    const otpRegex = /^[0-9]{6}$/; 
+    if (!otpRegex.test(otp)) {
+      return toast({
+        variant: "destructive",
+        description: "Invalid OTP format",
+      });
+    }
+
+
+    mutation.mutate({ email: email, otp: otp, newPassword: newPassword, confirmPassword: confirmPassword });
   };
   return (
     <section className="flex justify-center items-center h-screen">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Verify Otp</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account. <br />
+            Enter otp below, sent to your mail  <br />
             {mutation.isError && (
               <span className="text-red-500 text-sm">
                 {"Something went wrong"}
@@ -88,18 +98,21 @@ const LoginPage = () => {
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="otp">Otp</Label>
             <Input
-              ref={emailRef}
-              id="email"
-              type="email"
-              placeholder="m@example.com"
+              ref={otpRef}
+              id="otp"
+              placeholder="123456"
               required
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input ref={passwordRef} id="password" type="password" required />
+            <Label htmlFor="newPassword">New Password</Label>
+            <Input ref={newPasswordRef} id="newPassword"  required />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input ref={confirmPasswordRef} id="confirmPassword"  required />
           </div>
         </CardContent>
         <CardFooter>
@@ -111,19 +124,12 @@ const LoginPage = () => {
             >
               {mutation.isPending && <LoaderCircle className="animate-spin" />}
 
-              <span className="ml-2">Sign in</span>
+              <span className="ml-2">Submit</span>
             </Button>
 
             <div className="mt-4 text-center text-sm">
-              Don't have an account?{" "}
-              <Link to={"/auth/register"} className="underline">
-                Sign up
-              </Link>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don't remember password?{" "}
-              <Link to={"/auth/forget-password"} className="underline">
-                Forget Password
+              <Link to={"/auth/login"} className="underline">
+                Back to Login
               </Link>
             </div>
           </div>
@@ -133,4 +139,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default VerifyOtpPage;

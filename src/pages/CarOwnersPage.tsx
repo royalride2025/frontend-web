@@ -37,6 +37,7 @@ import { getBooks } from '@/http/api';
 import { useQuery } from '@tanstack/react-query';
 import { CirclePlus, MoreHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import userImg from '../assets/user.jpg';
 
 const carOwnersList = [
   { _id: "co1", name: "Ali Rehman", company_name: "Rehman Transport", address: "Lahore", license_no: "CO-1111", profile_img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQL7vXXOC__EODFPAoLotYwePZfR9PQIQ8ILg&s", createdAt: "2024-06-01" },
@@ -76,12 +77,12 @@ const CarOwnersPage = () => {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <Link to="/car-owner/create">
+          {/* <Link to="/car-owner/create">
             <Button>
               <CirclePlus size={20} />
               <span className="ml-2">Add CarOwners</span>
             </Button>
-          </Link>
+          </Link> */}
         </div>
 
         <Card className="mt-6">
@@ -95,7 +96,7 @@ const CarOwnersPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="hidden w-[100px] sm:table-cell">
+                  <TableHead className="w-[80px]">
                     <span className="sr-only">Image</span>
                   </TableHead>
                   <TableHead>Name</TableHead>
@@ -116,13 +117,13 @@ const CarOwnersPage = () => {
               <TableBody>
                 {carOwnersList.map((driver) => (
                   <TableRow key={driver._id}>
-                    <TableCell className="hidden sm:table-cell">
+                    <TableCell>
                       <img
                         alt={driver.name}
                         className="aspect-square rounded-md object-cover"
-                        height="64"
-                        width="64"
-                        src={driver.profile_img}
+                        height="40"
+                        width="40"
+                        src={driver.profile_img || userImg}
                       />
                     </TableCell>
                     <TableCell className="font-medium">{driver.name}</TableCell>

@@ -14,6 +14,8 @@ import Admins from './pages/Admins';
 import CreateAdmin from './pages/CreateAdmin';
 import CustomersPage from './pages/CustomerPage';
 import VehiclesPage from './pages/VehiclesPage';
+import VerifyOtpPage from './pages/VerifyOtp';
+import ForgetPasswordPage from './pages/ForgetPassword';
 
 const router = createBrowserRouter([
     {
@@ -89,6 +91,14 @@ const router = createBrowserRouter([
             {
                 path: 'register',
                 element: <RegisterPage />,
+            },
+            {
+                path: 'forget-password',
+                element: <ForgetPasswordPage />,
+            },
+            {
+                path: 'verify-otp',
+                element: <VerifyOtpPage />,
             },
         ],
     },

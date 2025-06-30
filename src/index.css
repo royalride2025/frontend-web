@@ -74,3 +74,19 @@
       @apply bg-background text-foreground;
     }
   }
+
+  /* Custom thin scrollbar */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 3px;
+}
+.bg-muted{
+  margin-top: 0;
+  display: none;
+}

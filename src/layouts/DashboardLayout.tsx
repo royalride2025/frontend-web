@@ -23,24 +23,37 @@ import {
     Search,
     ShoppingCart,
     Users,
+    Car,
+    UserCog,
+    Building2,
+    ShieldCheck,
+    CarFront
 } from 'lucide-react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import logo from '../assets/blackLogo.svg'; 
+import { useToast } from '@/hooks/use-toast';
 
 const DashboardLayout = () => {
     const navigate = useNavigate();
+    const { toast } = useToast()
+    
     const { 
-        // token, 
+        token, 
         setToken } = useTokenStore((state) => state);
 
-    // if (token === '') {
-    //     return <Navigate to={'/auth/login'} replace />;
-    // }
+    if (token === '') {
+        return <Navigate to={'/auth/login'} replace />;
+    }
 
     const logout = () => {
         console.log('Logging out!');
         setToken('');
         navigate('/auth/login');
+        toast({
+          className: "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",  
+          title: "Logout successful",
+        //   description: "Welcome back!",
+        });
     };
 
     return (
@@ -66,7 +79,7 @@ const DashboardLayout = () => {
                                 to="/dashboard"
                                 className={({ isActive }) => {
                                     return `flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${
-                                        isActive && 'bg-muted'
+                                        isActive && 'bg-gray-100 text-primary'
                                     }`;
                                 }}>
                                 <Home className="h-4 w-4" />
@@ -77,10 +90,10 @@ const DashboardLayout = () => {
                                 to="/drivers"
                                 className={({ isActive }) => {
                                     return `flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${
-                                        isActive && 'bg-muted'
+                                        isActive && 'bg-gray-100 text-primary'
                                     }`;
                                 }}>
-                                <Package className="h-4 w-4" />
+                                <UserCog className="h-4 w-4" />
                                 Drivers{' '}
                             </NavLink>
 
@@ -88,10 +101,10 @@ const DashboardLayout = () => {
                                 to="/car-owners"
                                 className={({ isActive }) => {
                                     return `flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${
-                                        isActive && 'bg-muted'
+                                        isActive && 'bg-gray-100 text-primary'
                                     }`;
                                 }}>
-                                <Package className="h-4 w-4" />
+                                <Building2 className="h-4 w-4" />
                                 Car Owners{' '}
                             </NavLink>
 
@@ -99,30 +112,30 @@ const DashboardLayout = () => {
                                 to="/customers"
                                 className={({ isActive }) => {
                                     return `flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${
-                                        isActive && 'bg-muted'
+                                        isActive && 'bg-gray-100 text-primary'
                                     }`;
                                 }}>
-                                <Package className="h-4 w-4" />
+                                <Users className="h-4 w-4" />
                                 Customers{' '}
                             </NavLink>
                             <NavLink
                                 to="/admins"
                                 className={({ isActive }) => {
                                     return `flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${
-                                        isActive && 'bg-muted'
+                                        isActive && 'bg-gray-100 text-primary'
                                     }`;
                                 }}>
-                                <Package className="h-4 w-4" />
+                                <ShieldCheck className="h-4 w-4" />
                                 Admins{' '}
                             </NavLink>
                             <NavLink
                                 to="/vehicles"
                                 className={({ isActive }) => {
                                     return `flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${
-                                        isActive && 'bg-muted'
+                                        isActive && 'bg-gray-100 text-primary'
                                     }`;
                                 }}>
-                                <Package className="h-4 w-4" />
+                                <CarFront className="h-4 w-4" />
                                 Vehicles{' '}
                             </NavLink>
                             

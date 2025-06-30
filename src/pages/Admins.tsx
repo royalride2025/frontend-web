@@ -31,11 +31,14 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { getBooks } from '@/http/api';
-// import { Book } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { getAdmins, getBooks, updateUserStatus } from '@/http/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CirclePlus, MoreHorizontal } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { LineWave } from 'react-loader-spinner';
 import { Link } from 'react-router-dom';
+import userImg from '../assets/user.jpg';
 
 const adminsList = [
   { _id: "a1", name: "Admin One", email: "admin1@royalride.com", role: "super-admin", createdAt: "2024-06-01" },
@@ -51,15 +54,67 @@ const adminsList = [
 ];
 
 const Admins = () => {
-    // todo: add loading spinner, and error message
-    // @ts-ignore
-
-    const { data, isLoading, isError } = useQuery({
-        queryKey: ['books'],
-        queryFn: getBooks,
-        staleTime: 10000, // in Milli-seconds
+    const { toast } = useToast()
+    const queryClient = useQueryClient();
+    const [currentPage, setCurrentPage] = useState(1);
+    
+    const { data: adminsData = { adminsAndCompliance: [], totalPages: 0, currentPage: 1, totalCount: 0 }, isLoading, isError } = useQuery({
+      queryKey: ['admins', currentPage],
+      queryFn: () => getAdmins({ page: currentPage }),
+      staleTime: 10 * 1000,
     });
 
+    const { adminsAndCompliance: admins, totalPages, totalCount } = adminsData;
+
+    const { mutate: changeStatus, isPending: statusLoading } = useMutation({
+      mutationFn: updateUserStatus,
+      onSuccess: () => {
+        toast({
+          title: "Status updated",
+          className:
+            "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
+        });
+        queryClient.invalidateQueries({ queryKey: ["admins"] });
+      },
+      onError: () => {
+        toast({
+          title: "Failed to update status",
+          variant: "destructive",
+          className: "bg-red-600 text-white shadow-md",
+        });
+      },
+    });
+
+    useEffect(() => {
+    if (admins && !isLoading && !isError) {
+      console.log("Admins fetched successfully:", admins);
+      toast({
+        className: "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
+        title: "Admins fetched successfully.",
+        // description: "Customer data fetched successfully.",
+      });
+    }
+  }, [admins, isLoading, isError]);
+
+
+  if (isLoading || statusLoading) return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/40 ">
+            <LineWave
+              visible={true}
+              height="100"
+              width="100"
+              color="#000"
+              ariaLabel="line-wave-loading"
+              wrapperStyle={{}}
+              wrapperClass=""
+              firstLineColor=""
+              middleLineColor=""
+              lastLineColor=""
+            />
+          </div>
+  );
+  if (isError) return <div>Failed to load customers</div>;
+  
     return (
       <div>
         <div className="flex items-center justify-between">
@@ -82,7 +137,7 @@ const Admins = () => {
           </Link>
         </div>
 
-        <Card className="mt-6">
+        <Card className="mt-6 max-h-[74vh] thin-scrollbar overflow-y-auto ">
           <CardHeader>
             <CardTitle>Admins</CardTitle>
             <CardDescription>
@@ -93,9 +148,9 @@ const Admins = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {/* <TableHead className="hidden w-[100px] sm:table-cell">
+                  <TableHead className="w-[80px]">
                     <span className="sr-only">Image</span>
-                  </TableHead> */}
+                  </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead className="hidden md:table-cell">
@@ -111,29 +166,41 @@ const Admins = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {adminsList.map((driver) => (
-                  <TableRow key={driver._id}>
-                    
-                    <TableCell className="font-medium">{driver.name}</TableCell>
+                {admins.map((admin : any) => (
+                  <TableRow key={admin._id}>
+                    <TableCell>
+                      <img
+                        alt={admin?.profile?.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="40"
+                        width="40"
+                        src={admin?.profile_img || userImg}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{admin?.profile?.name || '-'}</TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {driver.email}
+                      {admin.email}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {driver.role}
+                      {admin.role}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {driver.createdAt}
+                      {new Date(admin.createdAt).toLocaleDateString()}
+
                     </TableCell>
                     <TableCell>
                       <Switch
-                        // checked={driver.status === "active"}
-                        onCheckedChange={(val) =>
-                          console.log(
-                            "Toggled",
-                            driver.name,
-                            val ? "active" : "inactive"
-                          )
-                        }
+                        checked={admin?.status === "active"}
+                        onCheckedChange={() => {
+                        const newStatus =
+                          admin?.status === "active"
+                            ? "inactive"
+                            : "active";
+                        changeStatus({
+                          userId: admin?._id,
+                          status: newStatus,
+                        });
+                      }}
                       />
                     </TableCell>
                     <TableCell>
@@ -160,9 +227,27 @@ const Admins = () => {
               </TableBody>
             </Table>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex items-center justify-between">
             <div className="text-xs text-muted-foreground">
-              Showing <strong>1-10</strong> of <strong>32</strong> admins
+              Showing <strong>{((currentPage - 1) * 5) + 1}-{Math.min(currentPage * 5, totalCount)}</strong> of <strong>{totalCount}</strong> admins
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => prev + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
             </div>
           </CardFooter>
         </Card>
