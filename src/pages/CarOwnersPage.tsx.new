@@ -62,15 +62,6 @@ import { Separator } from "@/components/ui/separator"
 import carImg1 from '../assets/carImg1.webp'
 import userImg from '../assets/user.jpg';
 import { Input } from "@/components/ui/input";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 
 const CarOwnersPage = () => {
     const { toast } = useToast();
@@ -81,9 +72,6 @@ const CarOwnersPage = () => {
     const [openDrawer, setOpenDrawer] = useState<boolean>(false);
     const [selectedOwner, setSelectedOwner] = useState<any>(null);
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-    const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
-    const [rejectMessage, setRejectMessage] = useState('');
-    const [selectedOwnerId, setSelectedOwnerId] = useState<string | null>(null);
 
     const { data: carOwnersData = { carOwners: [], totalPages: 0, currentPage: 1, totalCount: 0 }, isLoading, isError } = useQuery({
         queryKey: ["carOwners", currentPage, filterStatus],
@@ -148,42 +136,18 @@ const CarOwnersPage = () => {
             return;
         }
 
-        search({ 
-            entity: 'carOwners', 
-            searchQuery, 
-            page: currentPage, 
-            filterStatus 
-        });
+        search({ entity: 'carOwners', searchQuery, page: currentPage, filterStatus });
     }, [searchQuery, currentPage, filterStatus]);
+
+    const { carOwners, totalPages, totalCount } = carOwnersData;
+
+    // Use the search results hook
+    useSearchResults('carOwners', currentPage);
 
     // Reset to first page when filter changes
     useEffect(() => {
         setCurrentPage(1);
     }, [filterStatus]);
-
-    const { carOwners, totalPages, totalCount } = carOwnersData;
-
-    // Use the search results hook
-    useSearchResults('carOwners', currentPage, filterStatus);
-
-    const handleReject = (ownerId: string) => {
-        setSelectedOwnerId(ownerId);
-        setIsRejectModalOpen(true);
-    };
-
-    const handleRejectSubmit = () => {
-        if (!selectedOwnerId) return;
-
-        changeProfileStatus({
-            userId: selectedOwnerId,
-            status: "rejected",
-            message: rejectMessage
-        });
-
-        setIsRejectModalOpen(false);
-        setRejectMessage('');
-        setSelectedOwnerId(null);
-    };
 
     if (isLoading || statusLoading || profileStatusLoading) return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/40">
@@ -216,7 +180,7 @@ const CarOwnersPage = () => {
                 <div className="flex items-center gap-4">
                     <Input
                         type="search"
-                        placeholder="Search by name, phone, or national ID..."
+                        placeholder="Search car owners..."
                         className="w-64"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -311,9 +275,14 @@ const CarOwnersPage = () => {
                                                 <Button
                                                     size="sm"
                                                     variant="destructive"
-                                                    onClick={() => handleReject(owner._id)}
+                                                    onClick={() =>
+                                                        changeProfileStatus({
+                                                            userId: owner._id,
+                                                            status: "rejected",
+                                                        })
+                                                    }
                                                 >
-                                                    Change Request
+                                                    Reject
                                                 </Button>
                                             </div>
                                         ) : (
@@ -554,45 +523,6 @@ const CarOwnersPage = () => {
                     </button>
                 </div>
             )}
-
-            {/* Reject Modal */}
-            <Dialog open={isRejectModalOpen} onOpenChange={setIsRejectModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Change Request Feedback</DialogTitle>
-                        <DialogDescription>
-                            Please provide feedback about what information needs to be corrected or added.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-4">
-                        <Textarea
-                            placeholder="Enter your feedback here..."
-                            value={rejectMessage}
-                            onChange={(e) => setRejectMessage(e.target.value)}
-                            className="min-h-[100px]"
-                        />
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setIsRejectModalOpen(false);
-                                setRejectMessage('');
-                                setSelectedOwnerId(null);
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleRejectSubmit}
-                            disabled={!rejectMessage.trim()}
-                        >
-                            Send Feedback
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 };

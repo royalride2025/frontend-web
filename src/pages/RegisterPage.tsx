@@ -9,12 +9,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { register } from "@/http/api";
+import { PasswordInput } from "@/components/ui/password-input";
 import useTokenStore from "@/store";
 import { useMutation } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
 import { useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast";
 
 const RegisterPage = () => {
     const { toast } = useToast()
@@ -106,7 +107,12 @@ const RegisterPage = () => {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
-              <Input ref={passwordRef} id="password" type="password" />
+              <PasswordInput 
+                ref={passwordRef} 
+                id="password" 
+                placeholder="Enter password"
+                required 
+              />
             </div>
 
             <Button

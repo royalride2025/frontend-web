@@ -16,6 +16,7 @@ import CustomersPage from './pages/CustomerPage';
 import VehiclesPage from './pages/VehiclesPage';
 import VerifyOtpPage from './pages/VerifyOtp';
 import ForgetPasswordPage from './pages/ForgetPassword';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 
 const router = createBrowserRouter([
     {
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
             {
                 path: 'dashboard',
                 element: <HomePage />,
+            },
+            {
+                path: 'change-password',
+                element: <ChangePasswordPage />,
             },
             {
                 path: 'drivers',

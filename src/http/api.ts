@@ -7,6 +7,7 @@ const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: true
 });
 
 api.interceptors.request.use((config) => {
@@ -18,20 +19,39 @@ api.interceptors.request.use((config) => {
 });
 
 // login admin
-export const login = async (data: { identifier: string; password: string, platform: string }) =>
-    api.post('/api/auth/login', data);
+export const login = async (data: { identifier: string; password: string, platform: string }) => {
+    const response = await api.post('/api/auth/login', data);
+    return response.data;
+};
 
-// register admin
-export const register = async (data: { name: string; email: string; password: string }) =>
-    api.post('/api/auth/register-compliance', {email: data.email, password: data.password, profile: { name: data.name }});
+// change password
+export const changePassword = async (data: { oldPassword: string; newPassword: string }) => {
+    const response = await api.post('/api/auth/change-password', data);
+    return response.data;
+};
+
+// register admin or compliance
+export const register = async (data: { name: string; email: string; password: string; isAdmin?: boolean }) => {
+    const endpoint = data.isAdmin ? '/api/auth/register-admin' : '/api/auth/register-compliance';
+    const response = await api.post(endpoint, {
+        email: data.email,
+        password: data.password,
+        profile: {
+            name: data.name
+        }
+    });
+    return response.data;
+};
 
 // forget password
 export const forgetPassword = async (data: { email: string; }) =>
     api.post('/api/auth/forget-password-admin', data);
 
 // verify otp
-export const verifyOtp = async (data: { email: string; otp: string; newPassword: string, confirmPassword: string}) =>
-    api.post('/api/auth/reset-password-admin', data);
+export const verifyOtp = async (data: { email: string; otp: string; newPassword: string, confirmPassword: string}) => {
+    const response = await api.post('/api/auth/verify-otp', data);
+    return response.data;
+};
 
 interface PaginationParams {
   page?: number;
@@ -40,40 +60,64 @@ interface PaginationParams {
 }
 
 // get all customers
-export const getCustomers = async ({ page = 1, limit = 5 }: PaginationParams = {}) => {
-  const response = await api.get(`/api/list/all-customers?page=${page}&limit=${limit}`);
+export const getCustomers = async ({ page = 1 }: PaginationParams = {}) => {
+  const response = await api.get(`/api/list/all-customers?page=${page}`);
   return response.data;
 };
 
 // get all admins and compliance
-export const getAdmins = async ({ page = 1, limit = 5 }: PaginationParams = {}) => {
-  const response = await api.get(`/api/list/all-admins-compliance?page=${page}&limit=${limit}`);
+export const getAdmins = async ({ page = 1 }: PaginationParams = {}) => {
+  const response = await api.get(`/api/list/all-admins-compliance?page=${page}`);
   return response.data;
 };
 
 // activate or deactivate user
-export const updateUserStatus = async ({ userId, status }: { userId: string, status: string }) =>
-  api.patch(`/api/list/user/${userId}/status`, { status });
+export const updateUserStatus = async ({ userId, status }: { userId: string, status: string }) => {
+  const response = await api.patch(`/api/list/user/${userId}/status`, { status });
+  return response.data;
+};
 
 // get all drivers
-export const getDrivers = async ({ page = 1, limit = 5, filterStatus = 'accepted' }: PaginationParams = {}) => {
-  const response = await api.get(`/api/list/all-drivers?page=${page}&limit=${limit}&filterStatus=${filterStatus}`);
+export const getDrivers = async ({ page = 1, filterStatus = 'accepted' }: PaginationParams = {}) => {
+  const response = await api.get(`/api/list/all-drivers?page=${page}&filterStatus=${filterStatus}`);
   return response.data;
 };
 
 // accept or reject driver
-export const updateDriverProfileStatus = async ({ userId, status }: { userId: string, status: string }) =>
-  api.patch(`/api/list/driver/${userId}/profile_status`, { profile_status: status });
+export const updateDriverProfileStatus = async ({ userId, status, message }: { userId: string, status: string, message?: string }) => {
+  const response = await api.patch(`/api/list/driver/${userId}/profile_status`, { 
+    profile_status: status,
+    profile_status_message: message 
+  });
+  return response.data;
+};
 
 // get all vehicles
-export const getVehicles = async ({ page = 1, limit = 5 }: PaginationParams = {}) => {
-  const response = await api.get(`/api/list/vehicles-with-owners?page=${page}&limit=${limit}`);
+export const getVehicles = async ({ page = 1 }: PaginationParams = {}) => {
+  const response = await api.get(`/api/list/vehicles-with-owners?page=${page}`);
+  return response.data;
+};
+
+// get all car owners
+export const getCarOwners = async ({ page = 1, filterStatus = 'accepted' }: PaginationParams = {}) => {
+  const response = await api.get(`/api/list/all-car-owners?page=${page}&filterStatus=${filterStatus}`);
   return response.data;
 };
 
 // accept or reject vehicle
-export const updateVehicleStatus = async ({ id, status }: { id: string, status: string }) =>
-  api.patch(`/api/list/vehicle/${id}/status`, { status: status });
+export const updateVehicleStatus = async ({ id, status }: { id: string, status: string }) => {
+  const response = await api.patch(`/api/list/vehicle/${id}/status`, { status });
+  return response.data;
+};
+
+// accept or reject car owner
+export const updateCarOwnerProfileStatus = async ({ userId, status, message }: { userId: string, status: string, message?: string }) => {
+  const response = await api.patch(`/api/list/car-owner/${userId}/profile_status`, { 
+    profile_status: status,
+    profile_status_message: message 
+  });
+  return response.data;
+};
 
 export const getBooks = async () => api.get('/api/books');
 
@@ -83,3 +127,24 @@ export const createBook = async (data: FormData) =>
             'Content-Type': 'multipart/form-data',
         },
     });
+
+export const searchEntities = async ({ entity, searchQuery, page = 1, filterStatus = 'accepted' }: { entity: string, searchQuery: string, page: number, filterStatus?: string }) => {
+  try {
+    const response = await api.get(`/api/list/search`, {
+      params: {
+        entity,
+        searchQuery,
+        page,
+        filterStatus
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const logout = async () => {
+  const response = await api.post('/api/auth/logout');
+  return response.data;
+};

@@ -27,19 +27,87 @@ import {
     UserCog,
     Building2,
     ShieldCheck,
-    CarFront
+    CarFront,
+    Loader2
 } from 'lucide-react';
-import { Link, Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import logo from '../assets/blackLogo.svg'; 
 import { useToast } from '@/hooks/use-toast';
+import { searchEntities } from '@/http/api';
+import { useEffect, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 
 const DashboardLayout = () => {
     const navigate = useNavigate();
-    const { toast } = useToast()
+    const location = useLocation();
+    const { toast } = useToast();
+    const [searchQuery, setSearchQuery] = useState('');
     
     const { 
         token, 
         setToken } = useTokenStore((state) => state);
+
+    // Get current entity based on route
+    const getCurrentEntity = () => {
+        const path = location.pathname;
+        if (path.includes('vehicles')) return 'vehicles';
+        if (path.includes('admins')) return 'admins';
+        if (path.includes('customers')) return 'customers';
+        if (path.includes('drivers')) return 'drivers';
+        return null;
+    };
+
+    // Clear search when route changes
+    useEffect(() => {
+        setSearchQuery('');
+    }, [location.pathname]);
+
+    const { mutate: search, isPending } = useMutation({
+        mutationFn: searchEntities,
+        onSuccess: (data) => {
+            // Handle search results based on entity
+            const entity = getCurrentEntity();
+            if (!entity) return;
+
+            // Get filterStatus from URL params if it exists
+            const urlParams = new URLSearchParams(location.search);
+            const filterStatus = urlParams.get('filterStatus') || 'accepted';
+
+            // Emit a custom event with search results
+            const event = new CustomEvent('searchResults', {
+                detail: { entity, data, filterStatus }
+            });
+            window.dispatchEvent(event);
+        },
+        onError: (error) => {
+            toast({
+                variant: "destructive",
+                title: "Search failed",
+                description: error.message
+            });
+        }
+    });
+
+    // Debounce search
+    useEffect(() => {
+        const entity = getCurrentEntity();
+        if (!entity) return;
+
+        const urlParams = new URLSearchParams(location.search);
+        const filterStatus = urlParams.get('filterStatus') || 'accepted';
+
+        // If search is empty, emit event with null data to trigger showing complete listing
+        if (!searchQuery.trim()) {
+            const event = new CustomEvent('searchResults', {
+                detail: { entity, data: null, filterStatus }
+            });
+            window.dispatchEvent(event);
+            return;
+        }
+
+        console.log('searchQuery , entity', searchQuery, entity);
+        search({ entity, searchQuery, page: 1, filterStatus });
+    }, [searchQuery, location.pathname]);
 
     if (token === '') {
         return <Navigate to={'/auth/login'} replace />;
@@ -225,14 +293,20 @@ const DashboardLayout = () => {
                         </SheetContent>
                     </Sheet>
                     <div className="w-full flex-1">
-                        <form>
+                        <form onSubmit={(e) => e.preventDefault()}>
                             <div className="relative">
-                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                {/* <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                {isPending && (
+                                    <Loader2 className="absolute right-2.5 top-2.5 h-4 w-4 animate-spin" />
+                                )}
                                 <Input
                                     type="search"
-                                    placeholder="Search products..."
-                                    className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-                                />
+                                    placeholder={getCurrentEntity() ? `Search ${getCurrentEntity()}...` : 'Search...'}
+                                    className="w-full appearance-none bg-background pl-8 pr-8 shadow-none md:w-2/3 lg:w-1/3"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    disabled={!getCurrentEntity()}
+                                /> */}
                             </div>
                         </form>
                     </div>
@@ -246,8 +320,13 @@ const DashboardLayout = () => {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>My Account</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>Settings</DropdownMenuItem>
-                            <DropdownMenuItem>Support</DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link to="/change-password" className="w-full cursor-pointer">
+                                    Change Password
+                                </Link>
+                            </DropdownMenuItem>
+                            {/* <DropdownMenuItem>Settings</DropdownMenuItem> */}
+                            {/* <DropdownMenuItem>Support</DropdownMenuItem> */}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem>
                                 <Button onClick={logout} variant={'link'}>

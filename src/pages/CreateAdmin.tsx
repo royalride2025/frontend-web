@@ -17,72 +17,67 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
+    FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Switch } from "@/components/ui/switch";
 import { useForm } from 'react-hook-form';
-import { createBook } from '@/http/api';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { register } from '@/http/api';
+import { useMutation } from '@tanstack/react-query';
 import { LoaderCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from "@/hooks/use-toast";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const formSchema = z.object({
-    title: z.string().min(2, {
-        message: 'Title must be at least 2 characters.',
+    name: z.string().min(2, {
+        message: 'Name must be at least 2 characters.',
     }),
-    genre: z.string().min(2, {
-        message: 'Genre must be at least 2 characters.',
+    email: z.string().email({
+        message: 'Please enter a valid email address.',
     }),
-    description: z.string().min(2, {
-        message: 'Description must be at least 2 characters.',
+    password: z.string().min(6, {
+        message: 'Password must be at least 6 characters.',
     }),
-    coverImage: z.instanceof(FileList).refine((file) => {
-        return file.length == 1;
-    }, 'Cover Image is required'),
-    file: z.instanceof(FileList).refine((file) => {
-        return file.length == 1;
-    }, 'Book PDF is required'),
+    isAdmin: z.boolean().default(false),
 });
 
-const CreateDriver = () => {
+const CreateAdmin = () => {
     const navigate = useNavigate();
+    const { toast } = useToast();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            title: '',
-            genre: '',
-            description: '',
+            name: '',
+            email: '',
+            password: '',
+            isAdmin: false,
         },
     });
 
-    const coverImageRef = form.register('coverImage');
-    const fileRef = form.register('file');
-
-    const queryClient = useQueryClient();
-
     const mutation = useMutation({
-        mutationFn: createBook,
+        mutationFn: register,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['books'] });
-            console.log('driver created successfully');
-            navigate('/drivers');
+            toast({
+                className: "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
+                title: `${form.getValues('isAdmin') ? 'Admin' : 'Compliance user'} created successfully`,
+            });
+            navigate('/admins');
+        },
+        onError: (error: any) => {
+            const msg = error?.response?.data?.message || "Something went wrong";
+            toast({
+                variant: "destructive",
+                title: "Failed to create user",
+                description: msg,
+            });
         },
     });
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        // Do something with the form values.
-        // ✅ This will be type-safe and validated.
-        const formdata = new FormData();
-        formdata.append('title', values.title);
-        formdata.append('genre', values.genre);
-        formdata.append('description', values.description);
-        formdata.append('coverImage', values.coverImage[0]);
-        formdata.append('file', values.file[0]);
-
-        mutation.mutate(formdata);
-
-        console.log(values);
+        const { name, email, password, isAdmin } = values;
+        mutation.mutate({ name, email, password, isAdmin });
     }
 
     return (
@@ -97,7 +92,7 @@ const CreateDriver = () => {
                                 </BreadcrumbItem>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbItem>
-                                    <BreadcrumbLink href="/drivers">Driver</BreadcrumbLink>
+                                    <BreadcrumbLink href="/admins">Admins</BreadcrumbLink>
                                 </BreadcrumbItem>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbItem>
@@ -106,81 +101,58 @@ const CreateDriver = () => {
                             </BreadcrumbList>
                         </Breadcrumb>
                         <div className="flex items-center gap-4">
-                            <Link to="/drivers">
+                            <Link to="/admins">
                                 <Button variant={'outline'}>
                                     <span className="ml-2">Cancel</span>
                                 </Button>
                             </Link>
                             <Button type="submit" disabled={mutation.isPending}>
-                                {mutation.isPending && <LoaderCircle className="animate-spin" />}
-                                <span className="ml-2">Submit</span>
+                                {mutation.isPending && <LoaderCircle className="animate-spin mr-2" />}
+                                <span className="ml-2">Create User</span>
                             </Button>
                         </div>
                     </div>
                     <Card className="mt-6">
                         <CardHeader>
-                            <CardTitle>Create a new driver</CardTitle>
+                            <CardTitle>Create a new admin/compliance user</CardTitle>
                             <CardDescription>
-                                Fill out the form below to create a new driver.
+                                Fill out the form below to create a new admin or compliance user.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-6">
                                 <FormField
                                     control={form.control}
-                                    name="title"
+                                    name="isAdmin"
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Title</FormLabel>
+                                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                            <div className="space-y-0.5">
+                                                <FormLabel className="text-base">
+                                                    User Type
+                                                </FormLabel>
+                                                <FormDescription>
+                                                    {field.value ? 'Admin User' : 'Compliance User'}
+                                                </FormDescription>
+                                            </div>
                                             <FormControl>
-                                                <Input type="text" className="w-full" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="genre"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Genre</FormLabel>
-                                            <FormControl>
-                                                <Input type="text" className="w-full" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="description"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Description</FormLabel>
-                                            <FormControl>
-                                                <Textarea className="min-h-32" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="coverImage"
-                                    render={() => (
-                                        <FormItem>
-                                            <FormLabel>Cover Image</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="file"
-                                                    className="w-full"
-                                                    {...coverImageRef}
+                                                <Switch
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
                                                 />
                                             </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Name</FormLabel>
+                                            <FormControl>
+                                                <Input type="text" placeholder="Enter name" {...field} />
+                                            </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -188,16 +160,26 @@ const CreateDriver = () => {
 
                                 <FormField
                                     control={form.control}
-                                    name="file"
-                                    render={() => (
+                                    name="email"
+                                    render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>driver File</FormLabel>
+                                            <FormLabel>Email</FormLabel>
                                             <FormControl>
-                                                <Input
-                                                    type="file"
-                                                    className="w-full"
-                                                    {...fileRef}
-                                                />
+                                                <Input type="email" placeholder="Enter email" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Password</FormLabel>
+                                            <FormControl>
+                                                <PasswordInput placeholder="Enter password" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -212,4 +194,4 @@ const CreateDriver = () => {
     );
 };
 
-export default CreateDriver;
+export default CreateAdmin;

@@ -40,11 +40,10 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { getVehicles, updateVehicleStatus } from '@/http/api';
+import { getVehicles, updateVehicleStatus, searchEntities } from '@/http/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CirclePlus, MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { LineWave } from 'react-loader-spinner';
 import {
   User,
@@ -65,6 +64,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from '@/components/ui/badge';
 import carImg1 from '../assets/carImg1.webp'
 import userImg from '../assets/user.jpg'
+import { Input } from '@/components/ui/input';
 
 // const fakeVehicles = [
 //   { _id: "v1", make: "Toyota", model: "Corolla", year: 2020, plate_number: "LEC-1234", status: "available", createdAt: "2024-06-01" },
@@ -82,97 +82,124 @@ import userImg from '../assets/user.jpg'
 
 const VehiclesPage = () => {
     const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [currentPage, setCurrentPage] = useState(1);
+    const queryClient = useQueryClient();
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: vehiclesData = { vehicles: [], totalPages: 0, currentPage: 1, totalCount: 0 }, isLoading, isError} = useQuery({
-    queryKey: ["vehicles", currentPage],
-    queryFn: () => getVehicles({ page: currentPage }),
-    staleTime: 10 * 1000,
-  });
+    const { data: vehiclesData = { vehicles: [], totalPages: 0, currentPage: 1, totalCount: 0 }, isLoading, isError} = useQuery({
+      queryKey: ["vehicles", currentPage],
+      queryFn: () => getVehicles({ page: currentPage }),
+      staleTime: 10 * 1000,
+    });
 
-  const { vehicles, totalPages, totalCount } = vehiclesData;
+    const { mutate: search, isPending: searchLoading } = useMutation({
+      mutationFn: searchEntities,
+      onSuccess: (data) => {
+        // Update the query cache with search results
+        queryClient.setQueryData(["vehicles", currentPage], data);
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          title: "Search failed",
+          description: error.message
+        });
+      }
+    });
 
-  const { mutate: changeStatus, isPending: statusLoading } = useMutation({
-    mutationFn: updateVehicleStatus,
-    onSuccess: () => {
-      toast({
-        title: "Status updated",
-        className:
-          "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
-      });
-      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
-    },
-    onError: () => {
-      toast({
-        title: "Failed to update status",
-        variant: "destructive",
-        className: "bg-red-600 text-white shadow-md",
-      });
-    },
-  });
+    // Handle search
+    useEffect(() => {
+      if (!searchQuery.trim()) {
+        // If search is empty, refetch the regular data
+        queryClient.invalidateQueries({ queryKey: ["vehicles", currentPage] });
+        return;
+      }
 
-  const [openDrawer, setOpenDrawer] = useState<boolean>(false);
+      search({ entity: 'vehicles', searchQuery, page: currentPage });
+    }, [searchQuery, currentPage]);
+
+    const { vehicles, totalPages, totalCount } = vehiclesData;
+
+    const { mutate: changeStatus, isPending: statusLoading } = useMutation({
+      mutationFn: updateVehicleStatus,
+      onSuccess: () => {
+        toast({
+          title: "Status updated",
+          className:
+            "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
+        });
+        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+      },
+      onError: () => {
+        toast({
+          title: "Failed to update status",
+          variant: "destructive",
+          className: "bg-red-600 text-white shadow-md",
+        });
+      },
+    });
+
+    const [openDrawer, setOpenDrawer] = useState<boolean>(false);
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   
-  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
-  const {
-    user_details,
-    owner_name,
-    owner_address,
-    owner_national_id,
-    profile_status,
-    terms_accepted,
-    language_preference,
-    is_driver,
-    profile_img,
-    vehicle_details,
-    driver_details,
-  } = selectedVehicle || {};
+    const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+    const {
+      user_details,
+      owner_name,
+      owner_address,
+      owner_national_id,
+      profile_status,
+      terms_accepted,
+      language_preference,
+      is_driver,
+      profile_img,
+      vehicle_details,
+      driver_details,
+    } = selectedVehicle || {};
 
-  useEffect(() => {
-    if (vehicles && !isLoading && !isError) {
-      console.log("Vehicles fetched successfully", vehicles);
-      toast({
-        className:
-          "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
-        title: "Vehicles fetched successfully.",
-        // description: "Customer data fetched successfully.",
-      });
+    useEffect(() => {
+      if (vehicles && !isLoading && !isError) {
+        console.log("Vehicles fetched successfully", vehicles);
+        toast({
+          className:
+            "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
+          title: "Vehicles fetched successfully.",
+          // description: "Customer data fetched successfully.",
+        });
+      }
+    }, [vehicles, isLoading, isError]);
+
+    if (isLoading || statusLoading)
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/40 ">
+          <LineWave
+            visible={true}
+            height="100"
+            width="100"
+            color="#000"
+            ariaLabel="line-wave-loading"
+            wrapperStyle={{}}
+            wrapperClass=""
+            firstLineColor=""
+            middleLineColor=""
+            lastLineColor=""
+          />
+        </div>
+      );
+    if (isError) return <div>Failed to load vehicles</div>;
+
+    const getStatusColor = (status: string) => {
+      switch (vehicle_details?.status?.toLowerCase()) {
+        case "active":
+          return "bg-green-100 text-green-800 border-green-200"
+        case "inactive":
+          return "bg-red-100 text-red-800 border-red-200"
+        case "pending":
+          return "bg-yellow-100 text-yellow-800 border-yellow-200"
+        default:
+          return "bg-gray-100 text-gray-800 border-gray-200"
+      }
     }
-  }, [vehicles, isLoading, isError]);
-
-  if (isLoading || statusLoading)
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/40 ">
-        <LineWave
-          visible={true}
-          height="100"
-          width="100"
-          color="#000"
-          ariaLabel="line-wave-loading"
-          wrapperStyle={{}}
-          wrapperClass=""
-          firstLineColor=""
-          middleLineColor=""
-          lastLineColor=""
-        />
-      </div>
-    );
-  if (isError) return <div>Failed to load vehicles</div>;
-
-  const getStatusColor = (status: string) => {
-    switch (vehicle_details?.status?.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800 border-green-200"
-      case "inactive":
-        return "bg-red-100 text-red-800 border-red-200"
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
-    }
-  }
     return (
       <div>
         <div className="flex items-center justify-between">
@@ -187,12 +214,15 @@ const VehiclesPage = () => {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          {/* <Link to="/vehicle/create">
-            <Button>
-              <CirclePlus size={20} />
-              <span className="ml-2">Add Vehicles</span>
-            </Button>
-          </Link> */}
+          <div className="flex items-center gap-4">
+            <Input
+              type="search"
+              placeholder="Search vehicles..."
+              className="w-64"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
 
         <Card className="mt-6 max-h-[74vh] thin-scrollbar overflow-y-auto ">
@@ -225,8 +255,8 @@ const VehiclesPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {vehicles.map((vehicle: any) => (
-                  <TableRow key={vehicle._id}>
+                {vehicles?.length > 0 && vehicles.map((vehicle: any) => (
+                  <TableRow key={vehicle?._id}>
                     <TableCell>
                       <img
                         alt={`${vehicle?.vehicle_details?.car_make} ${vehicle?.vehicle_details?.car_model}`}
@@ -617,7 +647,6 @@ const VehiclesPage = () => {
               
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                   
-              
                                   {/* Driving License PDF */}
                                   {driver_details?.driving_license_file && (
                                     <DocLink
@@ -673,7 +702,7 @@ const VehiclesPage = () => {
                                     <Separator className="my-6" />
                                     <p className="text-sm font-medium text-gray-600 mb-2">Vehicle Pictures</p>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                      {vehicle_details.vehicle_pictures.map((pic, idx) => (
+                                      {vehicle_details.vehicle_pictures.map((pic: string, idx: number) => (
                                         <img
                                           key={idx}
                                           // src={pic || carImg1}

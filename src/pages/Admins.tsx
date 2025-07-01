@@ -32,13 +32,15 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { getAdmins, getBooks, updateUserStatus } from '@/http/api';
+import { useSearchResults } from '@/hooks/use-search-results';
+import { getAdmins, updateUserStatus, searchEntities } from '@/http/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CirclePlus, MoreHorizontal } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { LineWave } from 'react-loader-spinner';
 import { Link } from 'react-router-dom';
 import userImg from '../assets/user.jpg';
+import { Input } from '@/components/ui/input';
 
 const adminsList = [
   { _id: "a1", name: "Admin One", email: "admin1@royalride.com", role: "super-admin", createdAt: "2024-06-01" },
@@ -57,12 +59,39 @@ const Admins = () => {
     const { toast } = useToast()
     const queryClient = useQueryClient();
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
     
     const { data: adminsData = { adminsAndCompliance: [], totalPages: 0, currentPage: 1, totalCount: 0 }, isLoading, isError } = useQuery({
       queryKey: ['admins', currentPage],
       queryFn: () => getAdmins({ page: currentPage }),
       staleTime: 10 * 1000,
     });
+
+    const { mutate: search, isPending: searchLoading } = useMutation({
+      mutationFn: searchEntities,
+      onSuccess: (data) => {
+        // Update the query cache with search results
+        queryClient.setQueryData(['admins', currentPage], data);
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          title: "Search failed",
+          description: error.message
+        });
+      }
+    });
+
+    // Handle search
+    useEffect(() => {
+      if (!searchQuery.trim()) {
+        // If search is empty, refetch the regular data
+        queryClient.invalidateQueries({ queryKey: ['admins', currentPage] });
+        return;
+      }
+
+      search({ entity: 'admins', searchQuery, page: currentPage });
+    }, [searchQuery, currentPage]);
 
     const { adminsAndCompliance: admins, totalPages, totalCount } = adminsData;
 
@@ -91,11 +120,9 @@ const Admins = () => {
       toast({
         className: "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
         title: "Admins fetched successfully.",
-        // description: "Customer data fetched successfully.",
       });
     }
   }, [admins, isLoading, isError]);
-
 
   if (isLoading || statusLoading) return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/40 ">
@@ -129,12 +156,21 @@ const Admins = () => {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <Link to="/admin/create">
-            <Button>
-              <CirclePlus size={20} />
-              <span className="ml-2">Add Admin</span>
-            </Button>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Input
+              type="search"
+              placeholder="Search admins..."
+              className="w-64"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Link to="/admin/create">
+              <Button>
+                <CirclePlus size={20} />
+                <span className="ml-2">Add Admin</span>
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <Card className="mt-6 max-h-[74vh] thin-scrollbar overflow-y-auto ">
@@ -166,7 +202,7 @@ const Admins = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {admins.map((admin : any) => (
+                {admins && admins.map((admin : any) => (
                   <TableRow key={admin._id}>
                     <TableCell>
                       <img

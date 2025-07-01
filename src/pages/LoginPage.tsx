@@ -16,6 +16,7 @@ import { LoaderCircle } from "lucide-react";
 import { useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const LoginPage = () => {
   const { toast } = useToast();
@@ -35,7 +36,6 @@ const LoginPage = () => {
         className:
           "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
         title: "Login successful",
-        //   description: "Welcome back!",
       });
     },
     onError: (error: any) => {
@@ -99,7 +99,12 @@ const LoginPage = () => {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input ref={passwordRef} id="password" type="password" required />
+            <PasswordInput
+              ref={passwordRef}
+              id="password"
+              placeholder="Enter your password"
+              required
+            />
           </div>
         </CardContent>
         <CardFooter>
@@ -110,7 +115,6 @@ const LoginPage = () => {
               disabled={mutation.isPending}
             >
               {mutation.isPending && <LoaderCircle className="animate-spin" />}
-
               <span className="ml-2">Sign in</span>
             </Button>
 

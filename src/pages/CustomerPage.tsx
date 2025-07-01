@@ -7,6 +7,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -32,7 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { getCustomers, updateUserStatus } from "@/http/api";
+import { getCustomers, updateUserStatus, searchEntities } from "@/http/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -56,12 +57,39 @@ const CustomersPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: customersData = { customers: [], totalPages: 0, currentPage: 1, totalCount: 0 }, isLoading, isError} = useQuery({
     queryKey: ["customers", currentPage],
     queryFn: () => getCustomers({ page: currentPage }),
     staleTime: 10 * 1000,
   });
+
+  const { mutate: search, isPending: searchLoading } = useMutation({
+    mutationFn: searchEntities,
+    onSuccess: (data) => {
+      // Update the query cache with search results
+      queryClient.setQueryData(["customers", currentPage], data);
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Search failed",
+        description: error.message
+      });
+    }
+  });
+
+  // Handle search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      // If search is empty, refetch the regular data
+      queryClient.invalidateQueries({ queryKey: ["customers", currentPage] });
+      return;
+    }
+
+    search({ entity: 'customers', searchQuery, page: currentPage });
+  }, [searchQuery, currentPage]);
 
   const { customers, totalPages, totalCount } = customersData;
 
@@ -91,12 +119,11 @@ const CustomersPage = () => {
         className:
           "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
         title: "Customers fetched successfully.",
-        // description: "Customer data fetched successfully.",
       });
     }
   }, [customers, isLoading, isError]);
 
-  if (isLoading || statusLoading) return (
+  if (isLoading || statusLoading ) return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/40 ">
             <LineWave
               visible={true}
@@ -128,12 +155,15 @@ const CustomersPage = () => {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        {/* <Link to="/customer/create">
-            <Button>
-              <CirclePlus size={20} />
-              <span className="ml-2">Add Customers</span>
-            </Button>
-          </Link> */}
+        <div className="flex items-center gap-4">
+          <Input
+            type="search"
+            placeholder="Search customers..."
+            className="w-64"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </div>
 
       <Card className="mt-6 max-h-[74vh] thin-scrollbar overflow-y-auto ">

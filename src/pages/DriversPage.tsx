@@ -32,9 +32,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { getDrivers, updateDriverProfileStatus, updateUserStatus } from "@/http/api";
+import { useSearchResults } from '@/hooks/use-search-results';
+import { getDrivers, searchEntities, updateDriverProfileStatus, updateUserStatus } from "@/http/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal } from "lucide-react";
+import { CirclePlus, MoreHorizontal } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { LineWave } from "react-loader-spinner";
 import {
@@ -61,6 +62,17 @@ import {
 import { Separator } from "@/components/ui/separator"
 import carImg1 from '../assets/carImg1.webp'
 import userImg from '../assets/user.jpg'
+import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 
 // const DriversList = [
@@ -169,9 +181,12 @@ import userImg from '../assets/user.jpg'
 const DriversPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const [filterStatus, setFilterStatus] = useState<'accepted' | 'requested'>('accepted');
   const [currentPage, setCurrentPage] = useState(1);
+  const [filterStatus, setFilterStatus] = useState<'accepted' | 'requested'>('accepted');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectMessage, setRejectMessage] = useState('');
+  const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
 
   const { data: driversData = { drivers: [], totalPages: 0, currentPage: 1, totalCount: 0 }, isLoading, isError} = useQuery({
     queryKey: ["drivers", currentPage, filterStatus],
@@ -179,12 +194,41 @@ const DriversPage = () => {
     staleTime: 10 * 1000,
   });
 
-  const { drivers, totalPages, totalCount } = driversData;
+  const { mutate: search, isPending: searchLoading } = useMutation({
+    mutationFn: searchEntities,
+    onSuccess: (data) => {
+      // Update the query cache with search results
+      queryClient.setQueryData(["drivers", currentPage, filterStatus], data);
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Search failed",
+        description: error.message
+      });
+    }
+  });
+
+  // Handle search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      // If search is empty, refetch the regular data
+      queryClient.invalidateQueries({ queryKey: ["drivers", currentPage, filterStatus] });
+      return;
+    }
+
+    search({ entity: 'drivers', searchQuery, page: currentPage, filterStatus });
+  }, [searchQuery, currentPage, filterStatus]);
 
   // Reset to first page when filter changes
   useEffect(() => {
     setCurrentPage(1);
   }, [filterStatus]);
+
+  const { drivers, totalPages, totalCount } = driversData;
+
+  // Use the search results hook
+  useSearchResults('drivers', currentPage, filterStatus);
 
   const { mutate: changeProfileStatus, isPending: profileStatusLoading } = useMutation({
     mutationFn: updateDriverProfileStatus,
@@ -270,6 +314,25 @@ const DriversPage = () => {
     }
   }
 
+  const handleReject = (driverId: string) => {
+    setSelectedDriverId(driverId);
+    setIsRejectModalOpen(true);
+  };
+
+  const handleRejectSubmit = () => {
+    if (!selectedDriverId) return;
+
+    changeProfileStatus({
+      userId: selectedDriverId,
+      status: "rejected",
+      message: rejectMessage
+    });
+
+    setIsRejectModalOpen(false);
+    setRejectMessage('');
+    setSelectedDriverId(null);
+  };
+
   if (isLoading || statusLoading || profileStatusLoading) return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/40 ">
             <LineWave
@@ -302,12 +365,21 @@ const DriversPage = () => {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        {/* <Link to="/driver/create">
-          <Button>
-            <CirclePlus size={20} />
-            <span className="ml-2">Add Driver</span>
-          </Button>
-        </Link> */}
+        <div className="flex items-center gap-4">
+          <Input
+            type="search"
+            placeholder="Search drivers..."
+            className="w-64"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Link to="/driver/create">
+            {/* <Button>
+              <CirclePlus size={20} />
+              <span className="ml-2">Add Driver</span>
+            </Button> */}
+          </Link>
+        </div>
       </div>
       <div className="flex gap-4 mb-4 mt-4">
         <Button
@@ -350,7 +422,7 @@ const DriversPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {drivers.map((driver: any) => (
+              {drivers && drivers.map((driver: any) => (
                 <TableRow key={driver?._id}>
                   <TableCell>
                     <img
@@ -400,14 +472,9 @@ const DriversPage = () => {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() =>
-                            changeProfileStatus({
-                              userId: driver._id,
-                              status: "rejected",
-                            })
-                          }
+                          onClick={() => handleReject(driver._id)}
                         >
-                          Reject
+                          Change Request
                         </Button>
                       </div>
                     ) : (
@@ -773,6 +840,45 @@ const DriversPage = () => {
           </button>
         </div>
       )}
+
+      {/* Reject Modal */}
+      <Dialog open={isRejectModalOpen} onOpenChange={setIsRejectModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Request Feedback</DialogTitle>
+            <DialogDescription>
+              Please provide feedback about what information needs to be corrected or added.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="Enter your feedback here..."
+              value={rejectMessage}
+              onChange={(e) => setRejectMessage(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsRejectModalOpen(false);
+                setRejectMessage('');
+                setSelectedDriverId(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectSubmit}
+              disabled={!rejectMessage.trim()}
+            >
+              Send Feedback
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

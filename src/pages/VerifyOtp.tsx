@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { login, verifyOtp } from "@/http/api";
+import {  verifyOtp } from "@/http/api";
+import { PasswordInput } from "@/components/ui/password-input";
 import useTokenStore from "@/store";
 import { useMutation } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
@@ -37,7 +38,6 @@ const VerifyOtpPage = () => {
         className:
           "text-black border-2 border-green-600 shadow-lg rounded-lg h-16",
         title: "Password reset successful",
-        //   description: "Welcome back!",
       });
     },
     onError: (error: any) => {
@@ -59,7 +59,6 @@ const VerifyOtpPage = () => {
     if (!otp || !newPassword || !confirmPassword) {
       return toast({
         variant: "destructive",
-        // title: "",
         description: "Otp and new password are required",
       });
     }
@@ -78,7 +77,6 @@ const VerifyOtpPage = () => {
         description: "Invalid OTP format",
       });
     }
-
 
     mutation.mutate({ email: email, otp: otp, newPassword: newPassword, confirmPassword: confirmPassword });
   };
@@ -108,11 +106,21 @@ const VerifyOtpPage = () => {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="newPassword">New Password</Label>
-            <Input ref={newPasswordRef} id="newPassword"  required />
+            <PasswordInput 
+              ref={newPasswordRef} 
+              id="newPassword" 
+              placeholder="Enter new password"
+              required 
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input ref={confirmPasswordRef} id="confirmPassword"  required />
+            <PasswordInput 
+              ref={confirmPasswordRef} 
+              id="confirmPassword" 
+              placeholder="Confirm new password"
+              required 
+            />
           </div>
         </CardContent>
         <CardFooter>
@@ -123,7 +131,6 @@ const VerifyOtpPage = () => {
               disabled={mutation.isPending}
             >
               {mutation.isPending && <LoaderCircle className="animate-spin" />}
-
               <span className="ml-2">Submit</span>
             </Button>
 
