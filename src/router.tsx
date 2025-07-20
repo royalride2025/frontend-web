@@ -17,12 +17,23 @@ import VehiclesPage from './pages/VehiclesPage';
 import VerifyOtpPage from './pages/VerifyOtp';
 import ForgetPasswordPage from './pages/ForgetPassword';
 import ChangePasswordPage from './pages/ChangePasswordPage';
+import LandingPage from './pages/Landing.jsx';
+
 
 const router = createBrowserRouter([
+    // {
+    //     path: '/',
+    //     element: <Navigate to="/dashboard" />,
+    // },
+    
     {
-        path: '/',
-        element: <Navigate to="/dashboard" />,
+            path: '/',
+            element: <Navigate to="/landing" />,
     },
+    {
+        path: '/landing',
+        element: <LandingPage />,
+},
     {
         path: '',
         element: <DashboardLayout />,
@@ -107,6 +118,9 @@ const router = createBrowserRouter([
             },
         ],
     },
-]);
+], 
+{
+    basename: '/royal-ride',  // ✅ set basename here, as the second argument
+});
 
 export default router;
