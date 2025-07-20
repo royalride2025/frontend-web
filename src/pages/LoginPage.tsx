@@ -30,7 +30,7 @@ const LoginPage = () => {
     mutationFn: login,
     onSuccess: (response) => {
       console.log("Login successful", response);
-      setToken(response.data.token);
+      setToken(response?.token);
       navigate("/dashboard");
       toast({
         className:
