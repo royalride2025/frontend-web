@@ -120,7 +120,7 @@ const router = createBrowserRouter([
     },
 ], 
 {
-    basename: '/royal-ride',  // ✅ set basename here, as the second argument
+    basename: '/',  // ✅ set basename here, as the second argument
 });
 
 export default router;

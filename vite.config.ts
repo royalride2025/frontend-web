@@ -4,7 +4,7 @@ import path from 'node:path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    base: '/royal-ride/',
+    base: '/',
     plugins: [react()],
     resolve: {
         alias: {
