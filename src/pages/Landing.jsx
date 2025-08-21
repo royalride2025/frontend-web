@@ -151,6 +151,14 @@ function Landing() {
                 ></div>
               ))}
             </button>
+
+            {/* Register as Driver Button */}
+            <button
+              className="bg-[#e3c28d] hover:bg-[#caac7c] text-black px-4 py-2 rounded-lg font-semibold transition-colors cursor-pointer ml-4"
+              onClick={() => window.location.href = '/auth/register-driver'}
+            >
+              Register as Driver
+            </button>
           </div>
         </header>
 

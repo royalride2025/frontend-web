@@ -91,6 +91,7 @@ const CarOwnersPage = () => {
         staleTime: 10 * 1000,
     });
 
+    console.log("selectedOwner:", selectedOwner);
     const { mutate: search, isPending: searchLoading } = useMutation({
         mutationFn: searchEntities,
         onSuccess: (data) => {
@@ -408,6 +409,35 @@ const CarOwnersPage = () => {
                                     <User className="h-5 w-5 text-purple-600" />
                                     <h2 className="text-lg font-semibold text-gray-900">
                                         Owner Information
+                                    </h2>
+                                </div>
+                                {selectedOwner?.profile_img && (
+                                    <div className="w-1/3 mb-4 rounded-full">
+                                        <img
+                                            src={selectedOwner.profile_img || userImg}
+                                            alt="Owner"
+                                            className="w-full h-40 object-cover rounded-full cursor-pointer"
+                                            onClick={() => setLightboxImage(selectedOwner.profile_img)}
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <InfoBox icon={<User />} label="Owner Name" value={selectedOwner?.owner_name} />
+                                    <InfoBox icon={<Phone />} label="Phone Number" value={selectedOwner?.user_details?.phone} />
+                                    <InfoBox icon={<CreditCard />} label="National ID" value={selectedOwner?.owner_national_id} />
+                                    <InfoBox icon={<MapPin />} label="Address" value={selectedOwner?.owner_address} colSpan={2} />
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                         {/* Captain Information */}
+                        <Card className="border-0 shadow-sm bg-gradient-to-br from-white to-gray-50">
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-2 mb-8">
+                                    <User className="h-5 w-5 text-purple-600" />
+                                    <h2 className="text-lg font-semibold text-gray-900">
+                                        Captain Information
                                     </h2>
                                 </div>
                                 {selectedOwner?.profile_img && (

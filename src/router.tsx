@@ -18,6 +18,10 @@ import VerifyOtpPage from './pages/VerifyOtp';
 import ForgetPasswordPage from './pages/ForgetPassword';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import LandingPage from './pages/Landing.jsx';
+import BookingsPage from './pages/BookingsPage.tsx';
+import RegisterDriver from './pages/RegisterDriver';
+import CreditsPage from './pages/CreditsPage.tsx';
+import SupportChatPage from './pages/SupportChatPage';
 
 
 const router = createBrowserRouter([
@@ -28,11 +32,12 @@ const router = createBrowserRouter([
     
     {
             path: '/',
-            element: <Navigate to="/landing" />,
+            // element: <Navigate to="/landing" />,
+            element: <LandingPage />,
     },
     {
-        path: '/landing',
-        element: <LandingPage />,
+        // path: '/landing',
+        // element: <LandingPage />,
 },
     {
         path: '',
@@ -84,7 +89,22 @@ const router = createBrowserRouter([
                 path: 'vehicle/create',
                 element: <VehiclesPage />,
             },
-            
+            {
+                path: 'bookings',
+                element: <BookingsPage />,
+            },
+            {
+                path: 'register-driver',
+                element: <RegisterDriver />,
+            },
+            {
+                path: 'credits',
+                element: <CreditsPage />,
+            },
+            {
+                path: 'chat-support',
+                element: <SupportChatPage />,
+            },
 
             // {
             //     path: 'books',
@@ -115,6 +135,10 @@ const router = createBrowserRouter([
             {
                 path: 'verify-otp',
                 element: <VerifyOtpPage />,
+            },
+            {
+                path: 'register-driver',
+                element: <RegisterDriver />,
             },
         ],
     },

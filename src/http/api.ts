@@ -148,3 +148,66 @@ export const logout = async () => {
   const response = await api.post('/api/auth/logout');
   return response.data;
 };
+
+// Get bookings with filters (status, booking_type)
+export const getBookings = async ({ status, booking_type }: { status: string, booking_type: string }) => {
+  const response = await api.get('/api/booking/all/bookings', {
+    params: { status, booking_type }
+  });
+  return response.data;
+};
+
+// Get available drivers for a booking
+export const getAvailableDriversForBooking = async (bookingId: string) => {
+  const response = await api.get(`/api/booking/${bookingId}/available-drivers`);
+  return response.data;
+};
+
+// Assign driver to a booking
+export const assignDriverToBooking = async ({ bookingId, driverId }: { bookingId: string, driverId: string }) => {
+  const response = await api.patch(`/api/booking/${bookingId}/assign-driver`, { driver_id: driverId });
+  return response.data;
+};
+
+// Register driver
+export const registerDriver = async (data: any) => {
+  const response = await api.post('/api/auth/register-driver', data);
+  return response.data;
+};
+
+// Upload file (image/pdf)
+export const uploadFile = async (formData: FormData) => {
+  const response = await api.post('/api/auth/upload-file', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+// Get credits history for admin (with filters, pagination)
+export const getCreditsHistoryAdmin = async ({ status, page = 1, limit = 10 }: { status?: string, page?: number, limit?: number }) => {
+  const response = await api.get('/api/credits/all-history', {
+    params: { status, page, limit }
+  });
+  return response.data;
+};
+
+// Approve a pending credit transaction
+export const approveCreditTransaction = async (id: string) => {
+  const response = await api.patch(`/api/credits/approve/${id}`);
+  return response.data;
+};
+
+
+// Get all open support chats (admin)
+export const getSupportChats = async () => {
+  const response = await api.get('/api/support');
+  return response.data;
+};
+
+// Send admin reply to a support chat (REST fallback, not used for socket)
+export const sendAdminReply = async ({ chatId, text, adminId }: { chatId: string, text: string, adminId: string }) => {
+  const response = await api.post(`/api/support-chats/${chatId}/reply`, { text, adminId });
+  return response.data;
+};

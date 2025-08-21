@@ -21,7 +21,9 @@ import { PasswordInput } from "@/components/ui/password-input";
 const LoginPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+
   const setToken = useTokenStore((state) => state.setToken);
+  const setUser = useTokenStore((state) => state.setUser);
 
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -31,6 +33,7 @@ const LoginPage = () => {
     onSuccess: (response) => {
       console.log("Login successful", response);
       setToken(response?.token);
+      setUser(response?.user || null);
       navigate("/dashboard");
       toast({
         className:

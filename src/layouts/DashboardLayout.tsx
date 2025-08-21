@@ -1,3 +1,4 @@
+                          
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -162,10 +163,11 @@ const DashboardLayout = () => {
                                     }`;
                                 }}>
                                 <UserCog className="h-4 w-4" />
-                                Drivers{' '}
+                                {/* Drivers{' '} */}
+                                Chauffeur{' '}
                             </NavLink>
 
-                            <NavLink
+                            {/* <NavLink
                                 to="/car-owners"
                                 className={({ isActive }) => {
                                     return `flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${
@@ -174,7 +176,7 @@ const DashboardLayout = () => {
                                 }}>
                                 <Building2 className="h-4 w-4" />
                                 Car Owners{' '}
-                            </NavLink>
+                            </NavLink> */}
 
                             <NavLink
                                 to="/customers"
@@ -206,7 +208,38 @@ const DashboardLayout = () => {
                                 <CarFront className="h-4 w-4" />
                                 Vehicles{' '}
                             </NavLink>
+
+                            <NavLink
+                                to="/bookings"
+                                className={({ isActive }) => {
+                                    return `flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${
+                                        isActive && 'bg-gray-100 text-primary'
+                                    }`;
+                                }}>
+                                <CarFront className="h-4 w-4" />
+                                Bookings{' '}
+                            </NavLink>
                             
+                             <NavLink
+                                to="/credits"
+                                className={({ isActive }) => {
+                                    return `flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${
+                                        isActive && 'bg-gray-100 text-primary'
+                                    }`;
+                                }}>
+                                <CarFront className="h-4 w-4" />
+                                Credits{' '}
+                            </NavLink>
+                              <NavLink
+                                to="/chat-support"
+                                className={({ isActive }) => {
+                                    return `flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${
+                                        isActive && 'bg-gray-100 text-primary'
+                                    }`;
+                                }}>
+                                <ShieldCheck className="h-4 w-4" />
+                                Chat Support 
+                            </NavLink>
                             
                             {/* <NavLink
                                 to="/books"

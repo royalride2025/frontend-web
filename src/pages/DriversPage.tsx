@@ -182,7 +182,7 @@ const DriversPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
-  const [filterStatus, setFilterStatus] = useState<'accepted' | 'requested'>('accepted');
+  const [filterStatus, setFilterStatus] = useState<'accepted' | 'requested' | 'rejected'>('accepted');
   const [searchQuery, setSearchQuery] = useState('');
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectMessage, setRejectMessage] = useState('');
@@ -394,6 +394,12 @@ const DriversPage = () => {
         >
           Requests
         </Button>
+        <Button
+          onClick={() => setFilterStatus("rejected")}
+          variant={filterStatus === "rejected" ? "default" : "outline"}
+        >
+          Rejected
+        </Button>
       </div>
       <Card className="mt-6  max-h-[64vh] thin-scrollbar overflow-y-auto ">
         <CardHeader>
@@ -415,7 +421,12 @@ const DriversPage = () => {
                 <TableHead className="hidden md:table-cell">
                   Created At
                 </TableHead>
-                <TableHead>Status</TableHead>
+                { (filterStatus === "rejected" || filterStatus === "requested") && (
+                <TableHead className="hidden md:table-cell">
+                  Reason of Rejection
+                </TableHead>
+                )}
+                <TableHead>Actions</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -454,8 +465,17 @@ const DriversPage = () => {
                   <TableCell className="hidden md:table-cell">
                     {driver.createdAt}
                   </TableCell>
+                  {(filterStatus === "rejected" || filterStatus === "requested") && (
                   <TableCell>
-                    {filterStatus === "requested" ? (
+                    
+                      <div className="flex gap-2">
+                        {driver?.profile_status_message || '-'}
+                      </div>
+                    
+                  </TableCell>
+                  ) }
+                  <TableCell>
+                    {(filterStatus === "requested" || filterStatus === "rejected") ? (
                       <div className="flex gap-2">
                         <Button
                           size="sm"
@@ -507,8 +527,15 @@ const DriversPage = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
+                        {/* <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem>Delete</DropdownMenuItem> */}
+                        <DropdownMenuItem
+                        onClick={() => {
+                        setSelectedDriver(driver);
+                        // console.log("driver", driver);
+                        setOpenDrawer(true);
+                        }}
+                        >View</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -579,8 +606,8 @@ const DriversPage = () => {
                     {(selectedDriver?.driver_img || userImg) && (
                       <div className="w-1/3 mb-4 rounded-full">
                         <img
-                          // src={selectedDriver?.driver_img || userImg}
-                          src={userImg}
+                          src={selectedDriver?.driver_img || userImg}
+                          // src={userImg}
 
                           alt="Driver"
                           className="w-full h-40 object-cover rounded-full cursor-pointer"
@@ -788,10 +815,10 @@ const DriversPage = () => {
                         {vehicle_details.vehicle_pictures.map((pic: string, idx: number) => (
                           <img
                             key={idx}
-                            // src={pic || carImg1}
-                            src={carImg1}
+                            src={pic || carImg1}
+                            // src={carImg1}
                             // onClick={() => setLightboxImage(selectedDriver?.driver_img || carImg1)}
-                            onClick={() => setLightboxImage(carImg1)}
+                            onClick={() => setLightboxImage(pic || carImg1)}
 
                             alt={`Vehicle ${idx + 1}`}
                             className="w-full h-40 object-cover rounded shadow border cursor-pointer"
